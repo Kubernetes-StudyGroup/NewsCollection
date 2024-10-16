@@ -19,7 +19,9 @@ def mongodb_container():
 async def news_saver(mongodb_container):
     """Fixture to set up MongoDbNewsSaver with async context manager."""
     mongo_uri = mongodb_container.get_connection_url()
-    saver = MongoDbNewsSaver(mongo_uri=mongo_uri)
+    saver = MongoDbNewsSaver(
+        mongo_uri=mongo_uri, mongo_db="test", mongo_collection="test"
+    )
     try:
         yield saver
     finally:
