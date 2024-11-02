@@ -1,7 +1,8 @@
 import asyncio
-
 from dataclasses import dataclass
+from datetime import datetime
 
+from dateutil import parser
 from loguru import logger
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -37,12 +38,55 @@ class MongoDbNewsSaver:
         docs = []
         async for doc in self.collection.find({}):
             docs.append(doc)
-        logger.info(docs)
         return docs
 
+    @staticmethod
+    async def convert_date(news: list[dict]) -> list[dict]:
+        for article in news:
+            article["publishedAt"] = parser.parse(article["publishedAt"])
+        return news
+
+    @staticmethod
+    async def add_inserted_time(news: list[dict]) -> list[dict]:
+        current_datetime = datetime.now()
+        for article in news:
+            article["insertedAt"] = current_datetime
+        return news
+
+    @staticmethod
+    async def remove_blank_author(news: list[dict]) -> list[dict]:
+        news = [
+            article
+            for article in news
+            if article["author"] != "" and article["author"] is not None
+        ]
+        return news
+
+    @staticmethod
+    async def remove_blank_content(news: list[dict]) -> list[dict]:
+        news = [
+            _ for _ in news if _["content"] != "[Removed]" and _["content"] is not None
+        ]
+        return news
+
+    @staticmethod
+    async def remove_blank_description(news: list[dict]) -> list[dict]:
+        news = [
+            _
+            for _ in news
+            if _["description"] != "[Removed]"
+            and _["description"] != ""
+            and _["description"] is not None
+        ]
+        return news
+
     async def save_news(self, news: list[dict]):
+        news = await MongoDbNewsSaver.remove_blank_content(news)
+        news = await MongoDbNewsSaver.remove_blank_description(news)
+        news = await MongoDbNewsSaver.remove_blank_author(news)
+        news = await MongoDbNewsSaver.convert_date(news)
+        news = await MongoDbNewsSaver.add_inserted_time(news)
         try:
-            logger.info("here once")
             await self.collection.insert_many(news)
         except Exception as e:
             logger.error(e)

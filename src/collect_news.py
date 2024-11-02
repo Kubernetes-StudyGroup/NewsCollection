@@ -1,9 +1,10 @@
 import asyncio
-
 from dataclasses import dataclass
+
 from loguru import logger
-from utils.news_fetcher import NewsFetcher
+
 from utils.mongodb_news_saver import MongoDbNewsSaver
+from utils.news_fetcher import NewsFetcher
 
 
 @dataclass
@@ -18,7 +19,6 @@ class NewsCollector:
             except Exception as e:
                 logger.error(e)
             else:
-                logger.info(f"Fetched {headlines['totalResults']} news")
                 await self.mongo_db_news_saver.save_news(headlines["articles"])
 
 

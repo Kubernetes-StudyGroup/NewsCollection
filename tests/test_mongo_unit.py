@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
-
 from testcontainers.mongodb import MongoDbContainer
+
 from src.utils.mongodb_news_saver import MongoDbNewsSaver
 
 
