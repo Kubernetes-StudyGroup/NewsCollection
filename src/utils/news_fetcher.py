@@ -1,14 +1,10 @@
-import asyncio
-from mmap import PAGESIZE
-
-import aiohttp
-
-from aiohttp import ClientSession
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 
-from src.utils.config_collections import APIConfigProvider
+import aiohttp
+from aiohttp import ClientSession
 
+from src.utils.config_collections import APIConfigProvider
 
 PAGESIZE: int = 100
 

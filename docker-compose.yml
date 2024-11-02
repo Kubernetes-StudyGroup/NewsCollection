@@ -1,11 +1,33 @@
 services:
   mongodb:
     image: mongo:latest
-    container_name: mongodb_container
+    container_name: my_mongo
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    networks:
+      - mongo_network
+
+  init_mongodb:
+    image: mongo:latest
+    container_name: init_mongo
+    networks:
+      - mongo_network
+    depends_on:
+      - mongodb
+    entrypoint: >
+      bash -c "
+      until mongosh --host my_mongo --eval 'db.getMongo()'; do
+        echo 'Waiting for MongoDB...';
+        sleep 2;
+      done;
+      mongosh --host my_mongo /docker-entrypoint-initdb.d/init-mongo.js
+      "
+    volumes:
+    - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
 volumes:
   mongo_data:
-    driver: local
+networks:
+  mongo_network:
